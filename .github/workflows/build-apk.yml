@@ -3,13 +3,16 @@ name: Build Lalit Media Player APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, master]
+    branches:
+      - main
+      - master
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -25,22 +28,30 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses || true
-
       - name: Install Android SDK components
         run: |
           sdkmanager --install \
+            "platform-tools" \
             "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "platform-tools"
+            "build-tools;35.0.0"
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Build APK
+      - name: Check project files
+        run: |
+          echo "Repository files:"
+          ls -la
+          echo "Checking for Android project:"
+          test -f build.gradle || test -f build.gradle.kts || test -f settings.gradle || test -f settings.gradle.kts
+          test -d app
+
+      - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
       - name: Upload APK
@@ -49,3 +60,4 @@ jobs:
           name: Lalit-Media-Player-debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 7
