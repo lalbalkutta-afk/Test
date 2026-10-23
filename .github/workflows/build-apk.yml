@@ -26,30 +26,27 @@ jobs:
           java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
 
       - name: Install Android SDK components
         run: |
           sdkmanager --install \
-            "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
-
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Check project files
+      - name: Check project structure
         run: |
-          echo "Repository files:"
+          pwd
           ls -la
-          echo "Checking for Android project:"
-          test -f build.gradle || test -f build.gradle.kts || test -f settings.gradle || test -f settings.gradle.kts
           test -d app
+          test -f app/build.gradle -o -f app/build.gradle.kts
 
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
